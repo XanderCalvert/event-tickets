@@ -8,48 +8,23 @@
  *
  */
 
-class Tribe__Tickets__Theme_Compatibility {
+use Tribe\Utils\Body_Classes;
+use Tribe\Utils\Theme_Compatibility as Compat;
+
+class Tribe__Tickets__Theme_Compatibility extends Compat {
 	/**
-	 * List of themes which have compatibility.
+	 * Fetches the correct class strings for theme and child theme if available.
 	 *
-	 * @since 4.11.4
+	 * @since 4.9.3
+	 * @since 5.8.0 made an extension of Tribe\Utils\Theme_Compatibility.
 	 *
-	 * @var   array
+	 * @deprecated 5.8.0
+	 *
+	 * @return array $classes
 	 */
-	protected $themes = [
-		'avada',
-		'divi',
-		'enfold',
-		'genesis',
-		'twentyfifteen',
-		'twentysixteen',
-		'twentyseventeen',
-		'twentynineteen',
-		'twentytwenty',
-		'twentytwentyone',
-	];
-
-	/**
-	 * Checks if theme needs a compatibility fix.
-	 *
-	 * @since  4.11.4
-	 *
-	 * @return boolean Whether compatibility is required.
-	 */
-	public function is_compatibility_required() {
-		$template   = strtolower( get_template() );
-		$stylesheet = strtolower( get_stylesheet() );
-
-		// Prevents empty stylesheet or template.
-		if ( empty( $template ) || empty( $stylesheet ) ) {
-			return false;
-		}
-
-		if ( in_array( $template, $this->get_registered_themes() ) ) {
-			return true;
-		}
-
-		return false;
+	public function get_body_classes() {
+		_deprecated_function( __FUNCTION__, 'TBD', 'Tribe\Utils\Theme_Compatibility::get_compatibility_classes()' );
+		return static::get_compatibility_classes();
 	}
 
 	/**
@@ -67,54 +42,72 @@ class Tribe__Tickets__Theme_Compatibility {
 			return $classes;
 		}
 
-		return array_merge( $classes, $this->get_body_classes() );
+		return array_merge( $classes, Compat::get_compatibility_classes() );
 	}
 
-	/**
-	 * Fetches the correct class strings for theme and child theme if available.
-	 *
-	 * @since 4.11.4
-	 *
-	 * @return array $classes List of body classes with parent and child theme classes included.
-	 */
-	public function get_body_classes() {
-		$classes      = [];
-		$child_theme  = strtolower( get_stylesheet() );
-		$parent_theme = strtolower( get_template() );
 
-		// Prevents empty stylesheet or template.
-		if ( empty( $parent_theme ) || empty( $child_theme ) ) {
+	/**
+	 * Add the theme to the body class.
+	 *
+	 * @since 4.9.3
+	 * @since 5.8.0 now uses static::get_compatibility_classes().
+	 *
+	 * @param  array $classes Classes that are been passed to the body.
+	 *
+	 * @deprecated 5.1.5
+	 *
+	 * @return array $classes
+	 */
+	public function filter_add_body_classes( array $classes ) {
+		_deprecated_function( __FUNCTION__, 'TBD', 'Theme_Compatibility::add_body_classes()' );
+
+		if ( ! tribe( Template_Bootstrap::class )->should_load() ) {
 			return $classes;
 		}
 
-		$classes[] = sanitize_html_class( "tribe-theme-$parent_theme" );
-
-		// if the 2 options are the same, then there is no child theme.
-		if ( $child_theme !== $parent_theme ) {
-			$classes[] = sanitize_html_class( "tribe-theme-parent-$parent_theme" );
-			$classes[] = sanitize_html_class( "tribe-theme-child-$child_theme" );
+		if ( ! static::is_compatibility_required() ) {
+			return $classes;
 		}
 
-		return $classes;
+		return array_merge( $classes, static::get_compatibility_classes() );
 	}
 
 	/**
-	 * Returns a list of themes registered for compatibility with our Views.
+	 * Contains the logic for if this object's classes should be added to the queue.
 	 *
-	 * @since  4.11.4
+	 * @since 5.1.5
+	 * @since 5.8.0 now uses static::get_compatibility_classes().
 	 *
-	 * @return array An array of the themes registered.
+	 * @param boolean $add   Whether to add the class to the queue or not.
+	 * @param array   $class The array of body class names to add.
+	 * @param string  $queue The queue we want to get 'admin', 'display', 'all'.
+	 * @return boolean Whether body classes should be added or not.
 	 */
-	public function get_registered_themes() {
-		/**
-		 * Filters the list of themes that are registered for compatibility.
-		 *
-		 * @since 4.11.4
-		 *
-		 * @param array $registered An associative array of views in the shape `[ <slug> => <class> ]`.
-		 */
-		$registered = apply_filters( 'tribe_tickets_theme_compatibility_registered', $this->themes );
+	public function should_add_body_class_to_queue( $add, $class, $queue ) {
+		if (
+			'admin' === $queue
+			|| ! tribe( Template_Bootstrap::class )->should_load()
+			|| ! static::is_compatibility_required()
+		) {
+			return $add;
+		}
 
-		return (array) $registered;
+		if ( in_array( $class, static::get_compatibility_classes() ) ) {
+			return true;
+		}
+
+		return $add;
+	}
+
+	/**
+	 * Add body classes.
+	 *
+	 * @since 5.1.5
+	 * @since 5.8.0 now uses static::get_compatibility_classes().
+	 *
+	 * @return void
+	 */
+	public function add_body_classes() {
+		tribe( Body_Classes::class )->add_classes( static::get_compatibility_classes() );
 	}
 }
