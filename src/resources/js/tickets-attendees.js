@@ -398,6 +398,30 @@ var tribe_event_tickets_attendees = tribe_event_tickets_attendees || {};
 		return retObj;
 	}
 
+	var $update_status = jQuery('button.update-status');
+	if ( $update_status.length > 0 ) {
+		$update_status.on('click', async function( e ) {
+			e.preventDefault();
+
+			var gateway_id = jQuery(this).attr('data-gateway-id');
+			var post_id = jQuery(this).attr('data-order-id');
+			var gateway_secret = jQuery(this).attr('data-gateway-secret');
+				var response = await fetch( 'https://tec.test/wordpress/wp-json/tribe/tickets/v1/commerce/stripe/order/' + gateway_id, {
+					method: 'POST',
+					body: JSON.stringify( {
+						gateway_id: gateway_id,
+						gateway_secret: gateway_secret,
+						post_id: post_id,
+					} ),
+					headers: {
+//						'X-WP-Nonce': $container.find( tribe.tickets.commerce.selectors.nonce ).val(),
+						'Content-Type': 'application/json',
+					}
+				});
+				console.log(response);
+		});
+	}
+
 	$( init );
 
 } )( jQuery, tribe_event_tickets_attendees );

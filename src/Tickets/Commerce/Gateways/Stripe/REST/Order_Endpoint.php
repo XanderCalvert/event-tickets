@@ -196,16 +196,23 @@ class Order_Endpoint extends Abstract_REST_Endpoint {
 		$messages = $this->get_error_messages();
 		$gateway_order_id = $request->get_param( 'order_id' );
 
-		$order = tec_tc_orders()->by_args( [
-			'status'           => tribe( Pending::class )->get_wp_slug(),
-			'gateway_order_id' => $gateway_order_id,
-		] )->first();
+		if ( $gateway_order_id === $request->get_param( 'gateway_id' ) ) {
+			$gateway_order_id = $request->get_param( 'gateway_id' );
+			$client_secret = $request->get_param( 'gateway_secret' );
+			$order_id = $request->get_param( 'post_id' );
+			$order = get_post( $order_id );
+		} else {
+			$order = tec_tc_orders()->by_args( [
+				'gateway_order_id' => $gateway_order_id,
+			] )->first();
+		}
+
 
 		if ( is_wp_error( $order ) || empty( $order ) ) {
 			return new WP_Error( 'tec-tc-gateway-stripe-order-not-found', $messages['order-not-found'], $order );
 		}
 
-		$client_secret  = $request->get_param( 'client_secret' );
+		$client_secret  = ! empty( $client_secret ) ? $client_secret : $request->get_param( 'client_secret' );
 		$payment_intent = tribe( Client::class )->get_payment_intent( $gateway_order_id, $client_secret );
 
 		if ( is_wp_error( $payment_intent ) ) {

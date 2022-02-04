@@ -3,6 +3,7 @@
 namespace TEC\Tickets\Commerce\Admin_Tables;
 
 use TEC\Tickets\Commerce\Gateways\Manager;
+use TEC\Tickets\Commerce\Gateways\Stripe\Client;
 use TEC\Tickets\Commerce\Status\Completed;
 use TEC\Tickets\Commerce\Status\Refunded;
 use TEC\Tickets\Commerce\Status\Status_Handler;
@@ -229,8 +230,9 @@ class Orders extends WP_List_Table {
 	 */
 	public function column_status( $item ) {
 		$status = tribe( Status_Handler::class )->get_by_wp_slug( $item->post_status );
+		$secret = $item->gateway_payload['created'][0]['client_secret'];
 
-		return esc_html( $status->get_name() );
+		return esc_html( $status->get_name() ) . "<button class='update-status' data-order-id='{$item->ID}' data-gateway-id='{$item->gateway_order_id}' data-gateway-secret='{$secret}'>Update</button>";
 	}
 
 	/**
@@ -279,6 +281,8 @@ class Orders extends WP_List_Table {
 	 */
 	public function column_order( $item ) {
 		$output = sprintf( esc_html__( '%1$s', 'event-tickets' ), $item->ID );
+		if ( 'tec-tc-action-req' === $item->post_status )
+			$item->post_status = 'tec-tc-pending';
 		$status = tribe( Status_Handler::class )->get_by_wp_slug( $item->post_status );
 
 		switch ( $status->get_slug() ) {
