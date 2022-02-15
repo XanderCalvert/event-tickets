@@ -292,7 +292,8 @@ tribe.tickets.commerce.gateway.stripe.checkout = {};
 		let response;
 
 		try {
-			response = await ky.post( `${obj.checkout.orderEndpoint}/${paymentIntent.id}`, args ).json();
+			// @todo DO NOT MERGE THIS CODE
+			// response = await ky.post( `${obj.checkout.orderEndpoint}/${paymentIntent.id}`, args ).json();
 		} catch( error ) {
 			response = error;
 		}
