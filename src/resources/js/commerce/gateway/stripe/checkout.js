@@ -291,12 +291,14 @@ tribe.tickets.commerce.gateway.stripe.checkout = {};
 		} );
 		let response;
 
+		/**
+		 * @todo DO NOT MERGE THIS CODE
 		try {
-			// @todo DO NOT MERGE THIS CODE
 			// response = await ky.post( `${obj.checkout.orderEndpoint}/${paymentIntent.id}`, args ).json();
 		} catch( error ) {
 			response = error;
 		}
+		 */
 
 		tribe.tickets.debug.log( 'stripe', 'updateOrder', response );
 
